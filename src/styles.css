@@ -1,0 +1,658 @@
+:root {
+  --font: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --paper: #f4ebe0;
+  --sheet: #f9f2e8;
+  --card: #f8f0e6;
+  --line: #ddd3c5;
+  --line-soft: #e6ddd0;
+  --edge: #46413b;
+  --ink: #1d1b18;
+  --ink-2: #34302b;
+  --muted: #6f6961;
+  --muted-2: #8b847a;
+  --green: #cfe3b2;
+  --green-2: #b2d491;
+  --green-3: #5fae57;
+  --violet: #e7ddf5;
+  --violet-ink: #7c63d0;
+  --orange: #fcdcbd;
+  --mint: #dff0de;
+  --rust: #d0683a;
+  --red-tag: #f6d6d0;
+  --red-ink: #8f2a22;
+  --shadow: 0 2px 0 var(--line);
+  --btn-shadow: 0 2px 0 var(--edge);
+
+  /* 3D stage */
+  --grid: #e3d8c9;
+  --prop-card: #f3eadd;
+  --prop-focus: #cfe3b2;
+  --prop-neutral: #e9e1d4;
+  --prop-green: #b2d491;
+  --prop-violet: #c9b8ef;
+  --prop-orange: #f6bf8c;
+  --prop-rust: #e48a62;
+  --prop-blue: #a9c8ea;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #171614;
+  --sheet: #1d1c19;
+  --card: #201f1c;
+  --line: #34312c;
+  --line-soft: #2b2925;
+  --edge: #0c0b0a;
+  --ink: #f1ebe2;
+  --ink-2: #ddd5ca;
+  --muted: #a69d91;
+  --muted-2: #8b847a;
+  --green: #31452a;
+  --green-2: #4c6b3d;
+  --green-3: #7fc278;
+  --violet: #2f2840;
+  --violet-ink: #a994f0;
+  --orange: #4a3423;
+  --mint: #22351f;
+  --rust: #e07a4a;
+  --red-tag: #4a2420;
+  --red-ink: #f2a093;
+  --shadow: 0 2px 0 #0c0b0a;
+  --btn-shadow: 0 2px 0 #000;
+
+  --grid: #2a2824;
+  --prop-card: #3a3731;
+  --prop-focus: #5d7f4a;
+  --prop-neutral: #4a463f;
+  --prop-green: #6f9a58;
+  --prop-violet: #7c68b8;
+  --prop-orange: #c08452;
+  --prop-rust: #c0603c;
+  --prop-blue: #5b7fa8;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  min-height: 600px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.icon {
+  flex: none;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+/* ---- Top bar ---- */
+
+.topbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--sheet);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.brand span {
+  white-space: nowrap;
+  background: linear-gradient(transparent 62%, var(--green) 62%);
+}
+
+.top-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.icon-btn:hover,
+.btn:hover:not(:disabled) {
+  border-color: var(--edge);
+}
+
+/* ---- Layout ---- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
+}
+
+/* ---- Sidebar ---- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chapters {
+  flex: 1;
+  overflow: auto;
+}
+
+.chapter {
+  margin-bottom: 8px;
+}
+
+.chapter-head {
+  padding: 6px 8px;
+  font-weight: 600;
+}
+
+.lesson-link {
+  display: block;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.lesson-link:hover {
+  background: var(--line-soft);
+}
+
+.lesson-link.is-active {
+  background: var(--green);
+  border-color: var(--edge);
+  box-shadow: var(--btn-shadow);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---- Center ---- */
+
+.center {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lesson-head {
+  min-width: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chip-orange {
+  background: var(--orange);
+}
+
+.chip-green {
+  background: var(--mint);
+}
+
+.chip-violet {
+  background: var(--violet);
+}
+
+.stage-card {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--card);
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  /* Own stacking context: the label renderer sets z-index on every label, which would otherwise
+     compete with the overlays (buttons, summary modal) on the stage card. */
+  z-index: 0;
+}
+
+.stage canvas {
+  display: block;
+}
+
+.stage-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.plate-name {
+  width: 215px;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.cargo {
+  padding: 2px 9px;
+  border: 1.5px solid var(--edge);
+  border-radius: 999px;
+  background: var(--cargo);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 0 var(--edge);
+  pointer-events: none;
+}
+
+.cargo.request {
+  --cargo: var(--rust);
+}
+
+.cargo.response {
+  --cargo: var(--green-3);
+}
+
+.cargo.handshake {
+  --cargo: var(--violet-ink);
+}
+
+/* Speech bubbles over the nodes: what a sender means, what a receiver makes of it. */
+
+.bubble-anchor {
+  z-index: 1;
+  padding-bottom: 10px;
+  pointer-events: none;
+}
+
+.bubble {
+  position: relative;
+  max-width: 230px;
+  padding: 7px 11px;
+  border: 1.5px solid var(--edge);
+  border-radius: 12px;
+  background: var(--sheet);
+  box-shadow: 0 2px 0 var(--edge);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  width: max-content;
+  opacity: 0;
+  transform: translateY(8px) scale(0.85);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.25s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bubble-number {
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--edge);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bubble.reaction {
+  background: var(--mint);
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 11px;
+  height: 11px;
+  border-right: 1.5px solid var(--edge);
+  border-bottom: 1.5px solid var(--edge);
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.is-on > .bubble {
+  opacity: 1;
+  transform: none;
+}
+
+.stage-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--edge);
+  border-radius: 8px;
+  background: var(--sheet);
+  box-shadow: var(--btn-shadow);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: var(--green);
+}
+
+/* ---- Summary modal (over the stage) ---- */
+
+.recap {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--paper) 55%, transparent);
+  backdrop-filter: blur(3px);
+  animation: recap-fade 0.25s ease both;
+}
+
+.recap[hidden] {
+  display: none;
+}
+
+.recap-card {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 22px 24px;
+}
+
+.recap-card h2 {
+  margin: 12px 0 8px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.recap-card p {
+  margin: 0 0 10px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.recap-points {
+  margin: 4px 0 14px;
+  padding-left: 20px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.recap-points li {
+  margin: 6px 0;
+}
+
+.recap-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+@keyframes recap-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Recap open/close: the caption card morphs into the recap card and back (see morph() in main.ts).
+   Only the card takes part; the root stays live so the 3D stage keeps animating underneath. */
+:root {
+  view-transition-name: none;
+}
+
+.caption {
+  view-transition-name: recap;
+}
+
+.recap-card {
+  view-transition-name: recap;
+}
+
+.center:has(.recap:not([hidden])) .caption {
+  view-transition-name: none;
+}
+
+::view-transition-group(recap) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-old(recap),
+::view-transition-new(recap) {
+  height: 100%;
+}
+
+/* ---- Caption card (over the stage's left side) ---- */
+
+.caption {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: min(340px, 42%);
+  max-height: calc(100% - 24px);
+  padding: 14px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.step-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.step-count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tag {
+  padding: 2px 9px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tag-problem {
+  background: var(--red-tag);
+  color: var(--red-ink);
+}
+
+.tag-idea {
+  background: var(--violet);
+}
+
+.tag-how {
+  background: var(--mint);
+}
+
+.tag-risk {
+  background: var(--orange);
+}
+
+.tag-result {
+  background: var(--green-2);
+}
+
+.tag-recap {
+  background: var(--sheet);
+}
+
+.step-body {
+  flex: 1;
+  overflow: auto;
+  animation: step-in 0.35s ease both;
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.step-body h2 {
+  margin: 12px 0 8px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.step-body p {
+  margin: 0 0 9px;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+code {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--sheet);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.step-nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.step-nav .btn-primary {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-nav .btn-primary span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
