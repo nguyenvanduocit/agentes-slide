@@ -35,7 +35,7 @@ export const chapters: readonly Chapter[] = [
               "Cả team đều dùng Claude Code, mỗi người trên máy mình, với `CLAUDE.md`, memory, skill và MCP của riêng máy đó.",
             ],
             key: "AI đang làm việc cho từng người, chưa làm việc cho team.",
-            show: ["minh", "aiMinh", "ha", "aiHa", "trang", "aiTrang", "khach"],
+            show: ["ha", "trang", "khach"],
             focus: ["trang"],
             flows: [
               { from: "khach", to: "trang", kind: "request", carries: "báo lỗi", intent: "Tôi không đăng nhập được trên Safari" },
@@ -51,7 +51,7 @@ export const chapters: readonly Chapter[] = [
               "Claude Code của Hà thì như ngày đầu. Cùng một câu hỏi, hai máy cho hai chất lượng khác nhau.",
             ],
             key: "Chất lượng AI phụ thuộc vào việc bạn ngồi máy nào.",
-            show: ["minh", "aiMinh", "ha", "aiHa", "trang", "aiTrang", "khach"],
+            show: ["aiMinh", "ha", "aiHa"],
             focus: ["aiHa", "aiMinh"],
             flows: [
               { from: "ha", to: "aiHa", kind: "request", carries: "lỗi Safari", intent: "Sao Safari không đăng nhập được nhỉ?" },
@@ -67,7 +67,7 @@ export const chapters: readonly Chapter[] = [
               "Cả hai AI đều nắm một phần, nhưng không có cách nào để chúng nói chuyện trực tiếp với nhau. Người đứng giữa chỉ còn làm việc chuyển tin.",
             ],
             key: "Con người đang làm proxy cho AI, vì AI của nhau không nói chuyện được với nhau.",
-            show: ["minh", "aiMinh", "ha", "aiHa", "trang", "aiTrang", "khach"],
+            show: ["minh", "aiMinh", "ha"],
             focus: ["minh", "ha"],
             flows: [
               { from: "ha", to: "minh", kind: "request", carries: "hỏi", intent: "Anh Minh ơi, lỗi Safari này anh gặp chưa?" },
@@ -85,7 +85,7 @@ export const chapters: readonly Chapter[] = [
               "Cấu hình hay cũng vậy: Minh có MCP đọc Jira và skill review riêng. Muốn Hà dùng, Minh phải gửi file để Hà tự cài lại. Không ai nhớ gửi cho Trang.",
             ],
             key: "Cái hay của một người chỉ tới được người khác khi có ai đó chép tay, và thường là không tới.",
-            show: ["minh", "aiMinh", "ha", "aiHa", "trang", "aiTrang", "khach"],
+            show: ["minh", "ha", "aiHa"],
             focus: ["ha"],
             flows: [
               { from: "aiHa", to: "ha", kind: "response", carries: "bản sửa", intent: "Ra rồi, lỗi nằm ở phiên đăng nhập", reaction: "Mất cả buổi chiều, mà anh Minh sửa rồi" },
@@ -101,7 +101,7 @@ export const chapters: readonly Chapter[] = [
               "Trang không thấy ai đang làm gì với AI. Kinh nghiệm có giá trị nhất của team bị khoá trong từng máy.",
             ],
             key: "Mỗi người đều có AI, nhưng AI chưa thuộc về team.",
-            show: ["minh", "aiMinh", "ha", "aiHa", "trang", "aiTrang"],
+            show: ["aiMinh", "ha", "aiHa", "trang", "aiTrang"],
             focus: ["aiMinh", "aiHa", "aiTrang"],
             moves: {
               minh: [-5.9, -5.4],
@@ -152,7 +152,7 @@ export const chapters: readonly Chapter[] = [
               "Mỗi dự án là một kênh. Kênh `#web-app` có Minh, Hà, Trang, và hai agent: `@dev` và `@qa`.",
               "Mỗi agent có vai trò, hướng dẫn, công cụ, ngân sách tháng, và **một người chủ** nhận các yêu cầu duyệt và cảnh báo ngân sách của nó. Minh là chủ của `@dev`.",
             ],
-            show: ["chat", "minh", "ha", "trang", "dev", "qa"],
+            show: ["chat", "minh", "dev"],
             focus: ["chat"],
             flows: [
               { from: "minh", to: "chat", kind: "handshake", carries: "thêm agent", intent: "Mình thêm @dev và @qa vào kênh nhé" },
@@ -167,7 +167,7 @@ export const chapters: readonly Chapter[] = [
               "Trang gõ `@dev khách không đăng nhập được trên Safari` vào kênh. Không cần đợi Hà rảnh, không cần hỏi qua Minh.",
               "Agent nhận việc, làm, rồi trả lời ngay trong thread để cả kênh cùng thấy, kể cả Hà và Minh.",
             ],
-            show: ["chat", "minh", "ha", "trang", "dev", "qa"],
+            show: ["chat", "trang", "dev"],
             focus: ["dev"],
             flows: [
               { from: "trang", to: "chat", kind: "request", carries: "@dev lỗi Safari", intent: "@dev khách không đăng nhập được trên Safari" },
@@ -183,7 +183,7 @@ export const chapters: readonly Chapter[] = [
               "Tin nhắn không nhắc ai sẽ đi qua router. Router chọn tối đa bốn agent trả lời, hoặc không ai, và tin nhắn ghi rõ ai đã chọn.",
               "Router không bao giờ cấp quyền cho agent.",
             ],
-            show: ["chat", "minh", "ha", "trang", "dev", "qa", "router"],
+            show: ["chat", "trang", "qa", "router"],
             focus: ["router"],
             flows: [
               { from: "trang", to: "chat", kind: "request", carries: "câu hỏi", intent: "Bản sửa Safari đã test chưa?" },
@@ -199,7 +199,7 @@ export const chapters: readonly Chapter[] = [
               "Mỗi task có người phụ trách và hạn chót, dù người phụ trách là người hay agent.",
               "Trang nhìn một bảng là biết ai đang làm gì, không cần họp hỏi trạng thái.",
             ],
-            show: ["chat", "minh", "ha", "trang", "dev", "qa", "router", "board"],
+            show: ["trang", "dev", "board"],
             focus: ["board"],
             flows: [
               { from: "dev", to: "board", kind: "response", carries: "trạng thái task", intent: "Cập nhật: PR sửa Safari đang chờ review" },
@@ -215,7 +215,7 @@ export const chapters: readonly Chapter[] = [
               "Lần sau Hà gặp lỗi tương tự, cách gỡ đã nằm trong wiki. Minh nghỉ phép thì kinh nghiệm vẫn ở lại với team.",
             ],
             key: "Hỏi một lần, lưu một chỗ. Người mới vào đọc wiki thay vì xin một buổi họp.",
-            show: ["chat", "minh", "ha", "trang", "dev", "qa", "router", "board", "wiki"],
+            show: ["chat", "minh", "ha", "dev", "wiki"],
             focus: ["wiki"],
             flows: [
               { from: "minh", to: "chat", kind: "request", carries: "kinh nghiệm", intent: "Lỗi này anh sửa tháng trước, ở trang khác" },
@@ -231,7 +231,7 @@ export const chapters: readonly Chapter[] = [
               "Công ty quyết định ai được nói chuyện với agent nào, và agent làm việc ở kênh nào.",
               "Mỗi kết nối (GitHub, Linear, Jira, Sentry, Notion, Google Drive, hoặc bất kỳ MCP server nào) được nối một lần cho cả công ty. Mỗi agent chỉ nhận đúng phạm vi được cấp.",
             ],
-            show: ["chat", "minh", "ha", "trang", "dev", "qa", "router", "board", "wiki"],
+            show: ["minh", "dev", "qa"],
             focus: ["dev", "qa"],
             flows: [
               { from: "minh", to: "dev", kind: "handshake", carries: "phạm vi", intent: "@dev được dùng GitHub và Sentry của web-app", reaction: "Nhận đúng phạm vi được cấp, không hơn" },
@@ -283,7 +283,7 @@ export const chapters: readonly Chapter[] = [
               "Agent còn đề xuất sửa hướng dẫn của chính nó, và người chủ quyết định nhận hay không. Hà không còn phải dùng một AI bắt đầu từ con số không.",
             ],
             key: "Sửa agent một lần là đủ, lần sau nó đã biết.",
-            show: ["dev", "skills", "mem", "minh", "ha"],
+            show: ["dev", "mem", "minh", "ha"],
             focus: ["mem"],
             flows: [
               { from: "ha", to: "dev", kind: "request", carries: "sửa một lần", intent: "Repo này dùng pnpm, đừng dùng npm nhé" },
@@ -300,7 +300,7 @@ export const chapters: readonly Chapter[] = [
               "Mọi agent đọc trí nhớ team trong mỗi lần chạy. Chỉ người thật mới thêm được, nội dung lấy từ bên ngoài không ghi vào được. Xem, sửa, xoá trong **Settings › General**.",
             ],
             key: "Dặn một lần, cả team agent cùng làm theo.",
-            show: ["dev", "skills", "mem", "minh", "ha", "trang", "team", "qa"],
+            show: ["dev", "trang", "team", "qa"],
             focus: ["team"],
             flows: [
               { from: "trang", to: "team", kind: "request", carries: "luật team", intent: "Từ nay PR nào cũng phải có test" },
@@ -317,7 +317,7 @@ export const chapters: readonly Chapter[] = [
               "Kết quả được gửi vào kênh, DM hoặc Drive. Không ai phải thức canh.",
             ],
             key: "Việc không đợi giờ hành chính.",
-            show: ["dev", "skills", "mem", "minh", "ha", "trang", "team", "qa", "routine", "sentry"],
+            show: ["dev", "minh", "routine", "sentry"],
             focus: ["routine"],
             flows: [
               { from: "minh", to: "routine", kind: "request", carries: "lịch", intent: "Sentry có issue mới thì @dev nhận việc ngay" },
@@ -334,7 +334,7 @@ export const chapters: readonly Chapter[] = [
               "Việc đã duyệt chạy đúng một lần, đúng như đã duyệt. Agent bí thì hỏi, câu hỏi nằm chung hộp thông báo.",
             ],
             key: "Agent làm cả đêm, nhưng quyết định rủi ro vẫn là của người.",
-            show: ["dev", "skills", "mem", "minh", "ha", "trang", "team", "qa", "routine", "sentry"],
+            show: ["dev", "minh"],
             focus: ["minh"],
             flows: [
               { from: "dev", to: "minh", kind: "request", carries: "thẻ duyệt", intent: "Bản sửa sẵn sàng, Minh duyệt merge nhé?" },
@@ -377,7 +377,7 @@ export const chapters: readonly Chapter[] = [
               "Ba tuần sau. Bản release chiều qua làm một số khách dùng Safari bị đăng xuất giữa lúc thanh toán. Sentry ghi nhận một issue mới.",
               "Routine Minh đặt chạy theo sự kiện: issue mới là `@dev` nhận việc ngay. Cả team đang ngủ.",
             ],
-            show: ["sentry", "dev", "minh", "trang", "ha"],
+            show: ["sentry", "dev"],
             focus: ["sentry", "dev"],
             flows: [
               { from: "sentry", to: "dev", kind: "request", carries: "issue mới", intent: "Issue mới: Safari đăng xuất ở trang thanh toán", reaction: "Nhận việc, đọc lỗi ngay" },
@@ -391,7 +391,7 @@ export const chapters: readonly Chapter[] = [
               "`@dev` đọc wiki: cách gỡ lỗi đăng nhập Safari mà team để lại ba tuần trước. Cùng nguyên nhân, khác trang. Lần trước Hà mất cả buổi chiều.",
               "`@dev` dùng Claude Code trên máy agent: clone repo, tái hiện lỗi, viết bản sửa kèm test theo luật của team, rồi mở pull request.",
             ],
-            show: ["sentry", "wiki", "dev", "pr", "minh", "trang", "ha"],
+            show: ["wiki", "dev", "pr"],
             focus: ["wiki", "dev"],
             flows: [
               { from: "wiki", to: "dev", kind: "response", carries: "bài học cũ", reaction: "Giống lỗi Safari lần trước, khác trang thôi" },
@@ -406,7 +406,7 @@ export const chapters: readonly Chapter[] = [
               "CI chạy test. `@review`, một agent khác với agent vừa viết code, đọc diff và để lại nhận xét. Hai agent trao đổi với nhau trong một cuộc trò chuyện phụ, không cần ai tag.",
               "Cổng chặn thật là branch protection của GitHub: CI đỏ thì không merge được.",
             ],
-            show: ["sentry", "wiki", "dev", "pr", "review", "ci", "minh", "trang", "ha"],
+            show: ["dev", "pr", "review", "ci"],
             focus: ["review", "ci"],
             flows: [
               { from: "pr", to: "review", kind: "request", carries: "diff" },
@@ -423,7 +423,7 @@ export const chapters: readonly Chapter[] = [
               "Mức duyệt của `@dev` đang là **Chỉ việc rủi ro**: merge và deploy hiện thành thẻ duyệt trong chat, gửi tới Minh, có thông báo đẩy trên điện thoại.",
               "Không ai phải thức. Thẻ duyệt nằm đó chờ người, và việc đã duyệt chạy đúng một lần, đúng như đã duyệt.",
             ],
-            show: ["sentry", "wiki", "dev", "pr", "review", "ci", "minh", "trang", "ha"],
+            show: ["dev", "minh"],
             focus: ["minh"],
             flows: [
               { from: "dev", to: "minh", kind: "request", carries: "thẻ duyệt", intent: "Sẵn sàng merge và deploy, Minh duyệt nhé?", reaction: "Zzz… sáng mai anh xem" },
@@ -437,7 +437,7 @@ export const chapters: readonly Chapter[] = [
               "Minh đọc thẻ duyệt trên điện thoại: diff, kết quả test, nhận xét của `@review`. Một lần bấm duyệt.",
               "`@dev` merge vào main. Pipeline của mình release lên staging và chạy test tự động, rồi lên production theo canary: một phần nhỏ người dùng trước, tự rollback khi chỉ số xấu đi.",
             ],
-            show: ["sentry", "wiki", "dev", "pr", "review", "ci", "main", "stg", "prod", "minh", "trang", "ha"],
+            show: ["dev", "ci", "main", "stg", "prod", "minh"],
             focus: ["main", "stg", "prod"],
             flows: [
               { from: "minh", to: "dev", kind: "response", carries: "đã duyệt", intent: "Đọc diff rồi, duyệt" },
@@ -455,7 +455,7 @@ export const chapters: readonly Chapter[] = [
               "Hà xem lại PR thay vì làm lại từ đầu như sáng thứ Hai ba tuần trước.",
             ],
             key: "Lỗi được sửa trong đêm, người chỉ còn duyệt và xem lại.",
-            show: ["sentry", "wiki", "dev", "pr", "review", "ci", "main", "stg", "prod", "minh", "trang", "ha"],
+            show: ["dev", "pr", "trang", "ha"],
             focus: ["trang", "ha"],
             flows: [
               { from: "dev", to: "trang", kind: "response", carries: "bản tóm tắt", intent: "Tóm tắt: lỗi gì, sửa thế nào, đã lên tới đâu", reaction: "Xong trước khi khách kịp báo" },
@@ -487,7 +487,7 @@ export const chapters: readonly Chapter[] = [
               "Ba mức, đặt riêng cho từng agent: **Luôn hỏi**, **Chỉ việc rủi ro** (mặc định), **Không bao giờ hỏi**.",
               "Đêm qua `@dev` dừng ở thẻ duyệt vì Minh để nó ở mức mặc định.",
             ],
-            show: ["dev", "gate", "minh", "action"],
+            show: ["gate", "minh"],
             focus: ["gate"],
             flows: [
               { from: "minh", to: "gate", kind: "handshake", carries: "mức duyệt", intent: "@dev: Chỉ việc rủi ro, như mặc định" },
@@ -518,7 +518,7 @@ export const chapters: readonly Chapter[] = [
               "Mức này bỏ thẻ duyệt cho mọi thứ agent được dùng, kể cả merge, deploy, rollback. Nó vẫn giữ: phạm vi quyền, công cụ đã tắt, ngân sách, các thao tác git bị cấm.",
               "Nó **không** kiểm tra code đúng hay sai. Việc đó vẫn là của CI, của `@review` và của canary.",
             ],
-            show: ["dev", "gate", "minh", "action"],
+            show: ["dev", "minh", "action"],
             focus: ["action"],
             flows: [
               { from: "dev", to: "action", kind: "request", carries: "merge", intent: "Ở mức này mình tự merge, không cần thẻ" },
@@ -533,7 +533,7 @@ export const chapters: readonly Chapter[] = [
               "Mỗi agent có ngân sách tháng, được kiểm trước mỗi lần gọi model. Chi phí của từng lần gọi đều được ghi lại.",
               "Hết ngân sách thì agent dừng, và Minh, người chủ, nhận cảnh báo.",
             ],
-            show: ["dev", "gate", "minh", "action", "budget"],
+            show: ["dev", "budget"],
             focus: ["budget"],
             flows: [
               { from: "dev", to: "budget", kind: "request", carries: "kiểm ngân sách", intent: "Còn ngân sách tháng không?" },
@@ -548,7 +548,7 @@ export const chapters: readonly Chapter[] = [
               "Mỗi lần agent gọi công cụ đều có một dòng audit, kể cả khi chạy ở mức Không bao giờ hỏi.",
               "Sáng ra, Minh đọc lại được `@dev` đã làm gì lúc 2 giờ sáng.",
             ],
-            show: ["dev", "gate", "minh", "action", "budget", "audit"],
+            show: ["dev", "minh", "audit"],
             focus: ["audit"],
             flows: [
               { from: "dev", to: "audit", kind: "response", carries: "dòng audit", intent: "Mỗi lần gọi công cụ, một dòng audit" },
@@ -564,7 +564,7 @@ export const chapters: readonly Chapter[] = [
               "**Giai đoạn 2:** agent đã chạy ổn chuyển sang **Không bao giờ hỏi** cho merge và staging. Production vẫn đi qua canary và rollback tự động.",
             ],
             key: "Bắt đầu chặt, nới dần khi có số liệu.",
-            show: ["dev", "gate", "minh", "action", "budget", "audit"],
+            show: ["gate", "minh", "action", "audit"],
             focus: ["gate", "action"],
             flows: [
               { from: "audit", to: "minh", kind: "response", carries: "số liệu", intent: "Ba tuần, mọi lần merge đều ổn" },
@@ -617,7 +617,7 @@ export const chapters: readonly Chapter[] = [
               "Vào **Settings › Devices › Connect a device**, chạy lệnh cài runner trên máy đó: một server, một VM hay một laptop. Agent chạy lệnh, chạy code và mở trình duyệt trên máy có runner.",
               "Trên máy đã gắn, agent suy nghĩ bằng Claude Code (hoặc Codex, đang thử nghiệm) với tài khoản đăng nhập trên chính máy đó, thay vì gọi API. Thông tin đăng nhập không rời khỏi máy. Server chỉ biết tên tài khoản, gói và mức đã dùng.",
             ],
-            show: ["server", "minh", "trang", "r1", "r2", "r3"],
+            show: ["server", "r1", "r2", "r3"],
             focus: ["r1", "r2", "r3"],
             flows: [
               { from: "r1", to: "server", kind: "handshake", carries: "kết nối runner", intent: "Runner đã cài, kết nối server" },
@@ -633,7 +633,7 @@ export const chapters: readonly Chapter[] = [
               "Cài runner ở **system mode** (cờ `--system`, chạy bằng root): mỗi agent chạy dưới một user hệ điều hành riêng, không đụng được thư mục, SSH key hay tài khoản git của agent khác, hay của người dùng máy.",
               "Với GitHub App, máy agent lấy code thẳng từ GitHub bằng token chỉ đọc, hết hạn sau một giờ, cho đúng một repo. Mọi lần push đều đi qua server của mình.",
             ],
-            show: ["server", "minh", "trang", "r1", "r2", "r3", "gh"],
+            show: ["server", "r2", "gh"],
             focus: ["r2", "gh"],
             flows: [
               { from: "gh", to: "r2", kind: "response", carries: "code (chỉ đọc)", intent: "Token chỉ đọc, một repo, hết hạn sau một giờ" },
@@ -650,7 +650,7 @@ export const chapters: readonly Chapter[] = [
               "Cần thêm sức thì gắn thêm máy, không phải thêm người.",
             ],
             key: "Server điều phối và ghi lại. Việc nặng chạy trên máy của mình, bằng Claude Code.",
-            show: ["server", "minh", "trang", "r1", "r2", "r3", "gh"],
+            show: ["server", "r1", "r2", "r3"],
             focus: ["server", "r1", "r2", "r3"],
             flows: [
               { from: "server", to: "r1", kind: "request", carries: "việc", intent: "Chia việc ra các máy chạy song song" },
@@ -684,7 +684,7 @@ export const chapters: readonly Chapter[] = [
               "Điều khoản dịch vụ ghi rõ: tính năng có thể thay đổi, bị giới hạn hoặc bị bỏ.",
               "**Cách xử lý:** tự host thì mình chọn lúc nâng cấp. Thử nghiệm trên một dự án trước khi mở rộng.",
             ],
-            show: ["minh", "trang", "beta"],
+            show: ["minh", "beta"],
             focus: ["beta"],
             flows: [
               { from: "minh", to: "beta", kind: "request", carries: "câu hỏi", intent: "Đang beta, lỡ tính năng đổi thì sao?" },
@@ -699,7 +699,7 @@ export const chapters: readonly Chapter[] = [
               "Thiết kế cách ly đầy đủ (ADR 0030) vẫn ở trạng thái **Proposed**. Nếu cài runner trên laptop nhân viên, agent dùng được SSH key và tài khoản GitHub của người đó, và commit trông như của họ.",
               "**Cách xử lý:** máy hoặc VM riêng cho agent, runner ở system mode, git qua GitHub App.",
             ],
-            show: ["minh", "trang", "beta", "iso"],
+            show: ["minh", "iso"],
             focus: ["iso"],
             flows: [
               { from: "minh", to: "iso", kind: "request", carries: "câu hỏi", intent: "Agent có đụng SSH key của anh không?" },
@@ -714,7 +714,7 @@ export const chapters: readonly Chapter[] = [
               "Tài liệu của chính agentes.chat ghi: gói cá nhân dành cho chủ tài khoản, dùng để trả lời người khác có thể trái điều khoản của nhà cung cấp. Gói đăng ký còn có giới hạn dùng theo chu kỳ.",
               "**Cách xử lý:** API key của công ty hoặc gói doanh nghiệp. Kiểm lại điều khoản của Anthropic trước khi chốt.",
             ],
-            show: ["minh", "trang", "beta", "iso", "plan"],
+            show: ["trang", "plan"],
             focus: ["plan"],
             flows: [
               { from: "trang", to: "plan", kind: "request", carries: "câu hỏi", intent: "Dùng gói Claude cá nhân của Minh được không?" },
@@ -729,7 +729,7 @@ export const chapters: readonly Chapter[] = [
               "Không có gọi video, gọi thoại, chia sẻ màn hình hay ghi hình.",
               "**Cách xử lý:** giữ Google Meet, hoặc tự host Jitsi cho các cuộc gọi thật.",
             ],
-            show: ["minh", "trang", "beta", "iso", "plan", "video"],
+            show: ["trang", "video"],
             focus: ["video"],
             flows: [
               { from: "trang", to: "video", kind: "request", carries: "câu hỏi", intent: "Họp video thì làm ở đâu?" },
@@ -745,7 +745,7 @@ export const chapters: readonly Chapter[] = [
               "**Cách xử lý:** chỉ dùng nội bộ, hoặc hỏi pháp chế trước khi mở cho khách. Không câu hỏi nào ở đây chặn việc thử nghiệm, chúng chỉ quyết định cách dựng.",
             ],
             key: "Biết trước rủi ro thì dựng đúng ngay từ pilot, không phải sửa sau.",
-            show: ["minh", "trang", "beta", "iso", "plan", "video", "agpl"],
+            show: ["trang", "agpl"],
             focus: ["agpl"],
             flows: [
               { from: "trang", to: "agpl", kind: "request", carries: "câu hỏi", intent: "Giấy phép AGPL có vướng gì không?" },
@@ -777,7 +777,7 @@ export const chapters: readonly Chapter[] = [
             body: [
               "Tự host agentes.chat. Gắn một đến hai máy agent ở system mode. Kết nối GitHub App với một repo thật.",
             ],
-            show: ["minh", "trang", "vm", "chan"],
+            show: ["minh", "vm", "chan"],
             focus: ["vm"],
             flows: [
               { from: "minh", to: "vm", kind: "request", carries: "dựng", intent: "Tuần 1: tự host, gắn máy agent, nối GitHub" },
@@ -792,7 +792,7 @@ export const chapters: readonly Chapter[] = [
               "Team `#web-app` chuyển trao đổi hằng ngày vào kênh, họp status chuyển thành routine tóm tắt.",
               "`@dev` viết code, `@review` review, `@tom-tat` tóm tắt mỗi sáng. Mức duyệt **Chỉ việc rủi ro**. Mỗi agent một ngân sách tháng.",
             ],
-            show: ["minh", "trang", "vm", "chan", "agents"],
+            show: ["trang", "chan", "agents"],
             focus: ["chan", "agents"],
             flows: [
               { from: "trang", to: "chan", kind: "request", carries: "việc hằng ngày", intent: "Họp status thành bản tóm tắt mỗi sáng" },
@@ -807,7 +807,7 @@ export const chapters: readonly Chapter[] = [
               "Số cuộc họp status bỏ được. Số giờ agent làm ngoài giờ. Số PR agent mở và được merge. Số lần phải rollback. Chi phí API.",
               "Và một con số của riêng team: Hà còn phải hỏi Minh bao nhiêu lần.",
             ],
-            show: ["minh", "trang", "vm", "chan", "agents", "measure"],
+            show: ["trang", "agents", "measure"],
             focus: ["measure"],
             flows: [
               { from: "agents", to: "measure", kind: "response", carries: "số liệu", intent: "Số PR, giờ làm ngoài giờ, chi phí API" },
@@ -823,7 +823,7 @@ export const chapters: readonly Chapter[] = [
               "Chi phí thử: một VM và tiền API. Không có phí bản quyền.",
             ],
             key: "Hai tuần, một dự án, vài con số. Đủ để quyết định mà không phải tin vào slide.",
-            show: ["minh", "trang", "vm", "chan", "agents", "measure", "decide"],
+            show: ["measure", "decide"],
             focus: ["decide"],
             flows: [
               { from: "measure", to: "decide", kind: "request", carries: "kết quả đo", intent: "Số liệu sau hai tuần đây", reaction: "Mở rộng, điều chỉnh, hay dừng?" },

@@ -48,8 +48,6 @@ const TRIP_MAX = 2.4;
 const BUBBLE_GAP = 0.08;
 /** Height above the base that a bubble reaches, for framing. */
 const BUBBLE_TOP = 3.6;
-/** Seconds the script's last bubble stays up before the script plays again. */
-const LOOP_HOLD = 2;
 /** Pipes run at half the plinth's height, plugging into the middle of its side faces. */
 const PIPE_Y = TILE_BOTTOM / 2;
 const PIPE_RADIUS = 0.17;
@@ -203,7 +201,7 @@ interface Beat {
   readonly kind: BubbleKind;
 }
 
-/** A speech bubble on a node's prop, shown from `at` until `until` seconds into each pass of the script. */
+/** A speech bubble on a node's prop, shown from `at` until `until` seconds into the step's script. */
 interface BubbleView {
   readonly object: CSS2DObject;
   readonly node: string;
@@ -361,9 +359,15 @@ export class Stage {
   private leaving: NodeView[] = [];
   private flows: FlowView[] = [];
   private bubbles: BubbleView[] = [];
-  /** Stage time the step's script first started, and how long one pass of it lasts; it loops. */
-  private scriptOrigin = 0;
-  private scriptPeriod = 0;
+  /**
+   * Seconds into the step's script. It runs up to just before the next bubble and holds there until
+   * `advance`; after the last bubble it plays out and stays.
+   */
+  private scriptClock = 0;
+  private scriptLimit = Infinity;
+  /** When each of the step's bubbles comes up, and which one is showing. */
+  private beatTimes: number[] = [];
+  private beat = 0;
   private fences: FenceView[] = [];
   private floor: THREE.Object3D[] = [];
   private palette: Palette;
@@ -469,6 +473,32 @@ export class Stage {
       view.target = 0;
     }
     this.apply(step, true);
+  }
+
+  /** Brings up the step's next bubble; false when the last one is already up, so the caller moves on. */
+  advance(): boolean {
+    const at = this.beatTimes[this.beat + 1];
+    if (at === undefined) return false;
+    this.beat += 1;
+    this.scriptClock = Math.max(this.scriptClock, at);
+    this.scriptLimit = this.holdBefore(this.beat + 1);
+    return true;
+  }
+
+  /** Goes back to the step's previous bubble; false on the first one, so the caller steps back. */
+  back(): boolean {
+    const at = this.beatTimes[this.beat - 1];
+    if (at === undefined) return false;
+    this.beat -= 1;
+    this.scriptClock = at;
+    this.scriptLimit = this.holdBefore(this.beat + 1);
+    return true;
+  }
+
+  /** The bubble showing (1-based, 0 when the step has none) and how many the step has. */
+  beats(): { readonly shown: number; readonly total: number } {
+    const total = this.beatTimes.length;
+    return { shown: total === 0 ? 0 : this.beat + 1, total };
   }
 
   setPaused(paused: boolean): void {
@@ -649,8 +679,9 @@ export class Stage {
 
   /**
    * Builds the step's pipes and plays its new flows one after another: the sender's intent bubble,
-   * the pipe drawing, the cargo's trip, the receiver's reaction bubble. The script then loops over the
-   * drawn pipes. With `play` false the first pass is already over: every pipe stands drawn.
+   * the pipe drawing, the cargo's trip, the receiver's reaction bubble. It plays once and then stands
+   * still, so a still stage means the step is over. With `play` false it has already played: every
+   * pipe stands drawn and the last bubble is up.
    */
   private setFlows(flows: readonly Flow[], play: boolean): void {
     const pool: PipePool = { runs: new Map(), fittings: new Map(), flows: new Map() };
@@ -661,6 +692,8 @@ export class Stage {
     }
 
     // Route every flow on the floor grid first so we can find shared segments and T-junctions.
+    // A pair of nodes is always routed in the same order, so flows both ways between them run
+    // through one pipe: the way back is the same route reversed.
     const routed = flows.flatMap((flow, index) => {
       const from = this.nodes.get(flow.from);
       const to = this.nodes.get(flow.to);
@@ -668,8 +701,10 @@ export class Stage {
       const obstacles = [...this.nodes.values()]
         .filter((v) => v !== from && v !== to)
         .map((v) => [v.base.x, v.base.z] as const);
-      const pts = pipeRoute([from.base.x, from.base.z], [to.base.x, to.base.z], TILE_HALF_WIDTH, obstacles, PIPE_RADIUS + 0.05);
-      return [{ flow, pts, index }];
+      const back = flow.from > flow.to;
+      const [a, b] = back ? [to, from] : [from, to];
+      const pts = pipeRoute([a.base.x, a.base.z], [b.base.x, b.base.z], TILE_HALF_WIDTH, obstacles, PIPE_RADIUS + 0.05);
+      return [{ flow, pts: back ? pts.reverse() : pts, index }];
     });
 
     // Split any segment where another route's vertex or perpendicular segment lands on it.
@@ -828,31 +863,39 @@ export class Stage {
         cursor += REACTION_SECONDS;
       }
     });
-    // Onto the stage clock; a script that is not played has already run its first pass.
-    const origin = play ? this.time : this.time - cursor;
-    this.scriptOrigin = origin;
-    this.scriptPeriod = cursor + LOOP_HOLD;
+    // A script that is not played has already run: every pipe drawn, the last bubble up.
+    this.beatTimes = beats.map((beat) => beat.at);
+    this.beat = play ? 0 : Math.max(0, beats.length - 1);
+    this.scriptClock = play ? 0 : cursor;
+    this.scriptLimit = this.holdBefore(this.beat + 1);
     this.bubbles = beats.flatMap((beat, i) => {
       const node = this.nodes.get(beat.node);
       if (!node) return [];
-      const until = beats[i + 1]?.at ?? this.scriptPeriod;
-      return [this.buildBubble(node, beat, i + 1, until)];
+      const until = beats[i + 1]?.at ?? Infinity;
+      return [this.buildBubble(node, beat, `${String(i + 1)}/${String(beats.length)}`, until)];
     });
     return built.map(({ view }) => {
       const start = starts.get(view);
-      return start === undefined ? { ...view, cue: null } : { ...view, born: origin + start, cue: start };
+      return { ...view, cue: start ?? null };
     });
   }
 
+  /** Where the script waits for the viewer: just before bubble `index` comes up; never past the last. */
+  private holdBefore(index: number): number {
+    const at = this.beatTimes[index];
+    return at === undefined ? Infinity : at - 0.001;
+  }
+
   /** A numbered speech bubble riding `node`'s prop, its tail tip just above the prop's top. */
-  private buildBubble(node: NodeView, beat: Beat, number: number, until: number): BubbleView {
+  /** `count` reads like "2/3": this bubble's turn out of the step's, so the viewer knows how many remain. */
+  private buildBubble(node: NodeView, beat: Beat, count: string, until: number): BubbleView {
     const anchor = document.createElement("div");
     anchor.className = "bubble-anchor";
     const bubble = document.createElement("div");
     bubble.className = `bubble ${beat.kind}`;
     const badge = document.createElement("b");
     badge.className = "bubble-number";
-    badge.textContent = String(number);
+    badge.textContent = count;
     bubble.append(badge, beat.text);
     anchor.append(bubble);
     const object = new CSS2DObject(anchor);
@@ -1236,9 +1279,8 @@ export class Stage {
     for (const fence of sunk) this.removeFence(fence);
     if (sunk.length > 0) this.fences = this.fences.filter((f) => !sunk.includes(f));
 
-    // Where the looping script is now: seconds into the current pass; negative before it starts.
-    const since = this.time - this.scriptOrigin;
-    const pass = since < 0 || this.scriptPeriod <= 0 ? since : since % this.scriptPeriod;
+    if (!this.paused) this.scriptClock = Math.min(this.scriptClock + dt, this.scriptLimit);
+    const pass = this.scriptClock;
 
     // Flows: each new pipe draws itself from source to target, then its packets start moving inside.
     // Pieces taken over from the step before stay whole.
@@ -1246,7 +1288,8 @@ export class Stage {
     const popAt = (draw: number, uAt: number): number =>
       THREE.MathUtils.clamp(uAt <= 0.01 ? draw * 4 : (draw - uAt * 0.95) * 10, 0.001, 1);
     for (const flow of this.flows) {
-      const age = this.time - flow.born;
+      // A step's own flows run on the script's clock; a flow kept from the step before stays drawn.
+      const age = flow.cue === null ? this.time - flow.born : pass - flow.cue;
       const draw = easeOutCubic(age / DRAW_SECONDS);
       const appear = THREE.MathUtils.clamp((age - DRAW_SECONDS) * 3, 0, 1);
       for (const run of flow.runs) {
@@ -1262,6 +1305,11 @@ export class Stage {
         for (const collar of run.collars) collar.scale.setScalar(collarScale);
       }
       for (const fit of flow.fittings) fit.root.scale.setScalar(fit.settled ? 1 : popAt(draw, fit.uAt));
+      // Packets flow through every drawn pipe. The cargo pill rides once, in its flow's turn, fading
+      // at each end; a flow kept from the step before has no turn, so no pill.
+      const trip = flow.cue === null ? -1 : (pass - flow.cue - DRAW_SECONDS) / flow.trip;
+      const v = THREE.MathUtils.clamp(trip, 0, 1);
+      const riding = trip >= 0 && trip <= 1 ? Math.min(1, v * 6, (1 - v) * 6) : 0;
       flow.packets.forEach((packet, i) => {
         let u = (this.time * 0.32 + flow.offset + i / flow.packets.length) % 1;
         // A handshake goes both ways: every other packet travels back.
@@ -1269,15 +1317,10 @@ export class Stage {
         packet.position.copy(flow.path.getPointAt(u));
         packet.quaternion.setFromUnitVectors(up, flow.path.getTangentAt(u));
         const edgeFade = Math.min(1, u * 10, (1 - u) * 10);
-        packet.scale.setScalar(appear * edgeFade);
+        packet.scale.setScalar(Math.max(appear * edgeFade, 0.001));
       });
-      // The cargo pill rides the pipe once per pass of the script, in its flow's turn, fading at each end.
-      // A flow kept from the step before has no turn: its pill rides over and over.
-      const trip = flow.cue === null ? (Math.max(0, age - DRAW_SECONDS) / flow.trip) % 1 : (pass - flow.cue - DRAW_SECONDS) / flow.trip;
-      const v = THREE.MathUtils.clamp(trip, 0, 1);
-      const riding = trip >= 0 && trip <= 1 ? 1 : 0;
       flow.cargo.position.copy(flow.path.getPointAt(v));
-      flow.cargo.element.style.opacity = String(riding * appear * Math.min(1, v * 6, (1 - v) * 6));
+      flow.cargo.element.style.opacity = String(appear * riding);
     }
 
     // Bubbles: each line of the script shows until the next one starts, the last one until the pass ends.

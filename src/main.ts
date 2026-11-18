@@ -151,15 +151,31 @@ function renderHead(lesson: Lesson): void {
     <p class="subtitle">${escapeHtml(lesson.subtitle)}</p>`;
 }
 
-function renderCaption(lesson: Lesson, step: Step): void {
+/** Lùi / Tiếp. While the step still has bubbles to show, Tiếp brings up the next one. */
+function navButtons(lesson: Lesson): string {
+  const { shown, total } = stage.beats();
   const following = next(lessons, state.at);
-  const atEnd = following.lesson === state.at.lesson && following.step === state.at.step;
-  const nextLabel = atEnd
-    ? "Hết"
-    : following.lesson !== state.at.lesson
-      ? `Bài tiếp: ${lessons[following.lesson]?.title ?? ""}`
-      : `Tiếp: ${lesson.steps[following.step]?.short ?? ""}`;
-  const atStart = state.at.lesson === 0 && state.at.step === 0;
+  const atEnd = shown >= total && following.lesson === state.at.lesson && following.step === state.at.step;
+  const nextLabel =
+    shown < total
+      ? `Tiếp (${String(shown + 1)}/${String(total)})`
+      : atEnd
+        ? "Hết"
+        : following.lesson !== state.at.lesson
+          ? `Bài tiếp: ${lessons[following.lesson]?.title ?? ""}`
+          : `Tiếp: ${lesson.steps[following.step]?.short ?? ""}`;
+  const atStart = shown <= 1 && state.at.lesson === 0 && state.at.step === 0;
+  return `
+      <button class="btn" data-action="prev"${atStart ? " disabled" : ""}>${icon("arrowLeft")}Lùi</button>
+      <button class="btn btn-primary" data-action="next"${atEnd ? " disabled" : ""}><span>${escapeHtml(nextLabel)}</span>${icon("arrowRight")}</button>`;
+}
+
+function renderNav(): void {
+  const nav = ui.caption.querySelector(".step-nav");
+  if (nav) nav.innerHTML = navButtons(current().lesson);
+}
+
+function renderCaption(lesson: Lesson, step: Step): void {
   ui.caption.innerHTML = `
     <div class="step-top">
       <span class="step-count">BƯỚC ${String(state.at.step + 1)} / ${String(lesson.steps.length)}</span>
@@ -169,9 +185,7 @@ function renderCaption(lesson: Lesson, step: Step): void {
       <h2>${escapeHtml(step.title)}</h2>
       ${step.body.map((p) => `<p>${rich(p)}</p>`).join("")}
     </div>
-    <div class="step-nav">
-      <button class="btn" data-action="prev"${atStart ? " disabled" : ""}>${icon("arrowLeft")}Lùi</button>
-      <button class="btn btn-primary" data-action="next"${atEnd ? " disabled" : ""}><span>${escapeHtml(nextLabel)}</span>${icon("arrowRight")}</button>
+    <div class="step-nav">${navButtons(lesson)}
     </div>`;
 }
 
@@ -252,6 +266,23 @@ function toggleTheme(): void {
   renderChrome();
 }
 
+/** Next: the step's next bubble, or the next step once its last bubble is up. */
+function forward(): void {
+  if (stage.advance()) renderNav();
+  else goTo(next(lessons, state.at));
+}
+
+/** Back: the step's previous bubble, or the previous step from its first one. */
+function backward(): void {
+  if (stage.back()) renderNav();
+  else goTo(prev(lessons, state.at));
+}
+
+function replay(): void {
+  stage.replay(current().step);
+  renderNav();
+}
+
 function togglePause(): void {
   state.paused = !state.paused;
   stage.setPaused(state.paused);
@@ -268,9 +299,9 @@ app.addEventListener("click", (event) => {
   const target = event.target.closest("[data-action]");
   if (!(target instanceof HTMLElement)) return;
   const { action } = target.dataset;
-  if (action === "next") goTo(next(lessons, state.at));
-  else if (action === "prev") goTo(prev(lessons, state.at));
-  else if (action === "replay") stage.replay(current().step);
+  if (action === "next") forward();
+  else if (action === "prev") backward();
+  else if (action === "replay") replay();
   else if (action === "pause") togglePause();
   else if (action === "theme") toggleTheme();
   else if (action === "fullscreen") toggleFullscreen();
@@ -284,9 +315,9 @@ window.addEventListener("hashchange", () => {
 window.addEventListener("keydown", (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   const key = event.key.toLowerCase();
-  if (key === "arrowright" || key === "pagedown") goTo(next(lessons, state.at));
-  else if (key === "arrowleft" || key === "pageup") goTo(prev(lessons, state.at));
-  else if (key === "r") stage.replay(current().step);
+  if (key === "arrowright" || key === "pagedown") forward();
+  else if (key === "arrowleft" || key === "pageup") backward();
+  else if (key === "r") replay();
   else if (key === " ") togglePause();
   else if (key === "f") toggleFullscreen();
   else if (key === "escape" && !ui.recap.hidden) closeRecap();
