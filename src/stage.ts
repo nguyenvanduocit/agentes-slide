@@ -56,6 +56,14 @@ const ELBOW_RADIUS = 0.45;
 const JUNCTION_ARM = 0.31;
 const JUNCTION_TRIM = 0.28;
 const JUNCTION_TURN_RADIUS = 0.2;
+/**
+ * Where two pipes cross without joining, the one drawn later bridges over the other: elbows up,
+ * across, and down, `BRIDGE_RISE` above the pipe and `BRIDGE_HALF_SPAN` either side of the crossing.
+ */
+const BRIDGE_RISE = 0.55;
+const BRIDGE_HALF_SPAN = 0.5;
+/** The bridge's elbows are tighter than the floor's, so each upright leg shows between its collars. */
+const BRIDGE_ELBOW_RADIUS = 0.18;
 /** How far from a tile's side face the glass tube starts, tucked inside the flange socket. */
 const FLANGE_TRIM = 0.08;
 const FRAME_OPTIONS = { margin: 1.22, minHeight: 7 } as const;
@@ -265,13 +273,44 @@ function pointKey(x: number, z: number): string {
   return `${x.toFixed(2)},${z.toFixed(2)}`;
 }
 
-/** A polyline of world points as straight runs joined by rounded elbows, plus the collar poses at each bend. */
+/** Floor axis a grid-aligned pipe runs along. */
+type Axis = "x" | "z";
+
+function axisOf(dx: number): Axis {
+  return Math.abs(dx) > 1e-6 ? "x" : "z";
+}
+
+/** Crossings by vertex key, each with the axis of the pipe that arches over the other. */
+type Bridges = ReadonlyMap<string, Axis>;
+
+/** The polyline with a bridge (up, across, down) at every crossing in `bridges` this pipe runs over. */
+function withBridges(points: readonly THREE.Vector3[], bridges: Bridges): THREE.Vector3[] {
+  return points.flatMap((corner, i) => {
+    const before = points[i - 1];
+    const after = points[i + 1];
+    if (!before || !after) return [corner];
+    const dir = corner.clone().sub(before).normalize();
+    const straight = dir.dot(after.clone().sub(corner).normalize()) > 0.99;
+    if (!straight || bridges.get(pointKey(corner.x, corner.z)) !== axisOf(dir.x)) return [corner];
+    const half = Math.min(BRIDGE_HALF_SPAN, corner.distanceTo(before) * 0.5, corner.distanceTo(after) * 0.5);
+    const foot = corner.clone().addScaledVector(dir, -half);
+    const land = corner.clone().addScaledVector(dir, half);
+    return [foot, foot.clone().setY(foot.y + BRIDGE_RISE), land.clone().setY(land.y + BRIDGE_RISE), land];
+  });
+}
+
+/**
+ * A polyline of world points as straight runs joined by rounded elbows, plus the collar poses at
+ * each bend. At a crossing in `bridges` the pipe along the bridging axis bridges over the other.
+ */
 function pipePath(
-  points: readonly THREE.Vector3[],
-  junctionKeys?: ReadonlySet<string>,
+  polyline: readonly THREE.Vector3[],
+  junctionKeys: ReadonlySet<string>,
+  bridges: Bridges,
 ): { path: THREE.CurvePath<THREE.Vector3>; elbows: ElbowJoint[] } {
   const path = new THREE.CurvePath<THREE.Vector3>();
   const elbows: ElbowJoint[] = [];
+  const points = withBridges(polyline, bridges);
   let from = points[0];
   if (!from) return { path, elbows };
   for (let i = 1; i < points.length; i++) {
@@ -287,8 +326,9 @@ function pipePath(
     if (inDir.dot(outDir) > 0.99) {
       continue;
     }
-    const isJunction = junctionKeys?.has(pointKey(corner.x, corner.z)) ?? false;
-    const maxR = isJunction ? JUNCTION_TURN_RADIUS : ELBOW_RADIUS;
+    const isJunction = junctionKeys.has(pointKey(corner.x, corner.z));
+    const upright = Math.abs(inDir.y) > 0.5 || Math.abs(outDir.y) > 0.5;
+    const maxR = isJunction ? JUNCTION_TURN_RADIUS : upright ? BRIDGE_ELBOW_RADIUS : ELBOW_RADIUS;
     const r = Math.min(maxR, corner.distanceTo(from) * 0.48, corner.distanceTo(after) * 0.48);
     const enter = corner.clone().addScaledVector(inDir, -r);
     const leave = corner.clone().addScaledVector(outDir, r);
@@ -788,9 +828,42 @@ export class Stage {
         }
       }
     }
+    // A four-way vertex that every route passes straight through is two pipes crossing, not a joint.
+    const turnKeys = new Set<string>();
+    for (const r of subdivided) {
+      r.pts.forEach((p, i) => {
+        const prev = r.pts[i - 1];
+        const next = r.pts[i + 1];
+        const straight = prev && next && (prev[0] === next[0] || prev[1] === next[1]);
+        if (!straight) turnKeys.add(pointKey(p[0], p[1]));
+      });
+    }
     const junctionKeys = new Set<string>();
+    const crossings = new Set<string>();
     for (const [k, dirs] of vertexDirs) {
-      if (dirs.size >= 3) junctionKeys.add(k);
+      if (dirs.size === 4 && !turnKeys.has(k)) crossings.add(k);
+      else if (dirs.size >= 3) junctionKeys.add(k);
+    }
+
+    // At each crossing, the pipe drawn later arches over: a flow kept from the step before is
+    // already drawn, the rest draw in list order. A pipe shared by several flows draws with its first.
+    const firstDrawn = new Map<string, number>();
+    for (const r of subdivided) {
+      const kept = pool.flows.has(`${r.flow.kind}|${r.pts.map(([x, z]) => pointKey(x, z)).join("->")}`);
+      const order = kept ? -1 : r.index;
+      r.pts.forEach((p, i) => {
+        const k = pointKey(p[0], p[1]);
+        const next = r.pts[i + 1];
+        if (!crossings.has(k) || !next) return;
+        const slot = `${k}|${axisOf(next[0] - p[0])}`;
+        firstDrawn.set(slot, Math.min(firstDrawn.get(slot) ?? Infinity, order));
+      });
+    }
+    const bridges = new Map<string, Axis>();
+    for (const k of crossings) {
+      const x = firstDrawn.get(`${k}|x`) ?? Infinity;
+      const z = firstDrawn.get(`${k}|z`) ?? Infinity;
+      bridges.set(k, x > z ? "x" : "z");
     }
 
     const builtRuns = new Set<string>();
@@ -823,6 +896,7 @@ export class Stage {
         pts,
         index,
         junctionKeys,
+        bridges,
         vertexDirs,
         vertexCoords,
         builtRuns,
@@ -926,6 +1000,7 @@ export class Stage {
     pts: readonly Point[],
     index: number,
     junctionKeys: ReadonlySet<string>,
+    bridges: Bridges,
     vertexDirs: ReadonlyMap<string, ReadonlyMap<string, THREE.Vector3>>,
     vertexCoords: ReadonlyMap<string, Point>,
     builtRuns: Set<string>,
@@ -935,7 +1010,7 @@ export class Stage {
     pool: PipePool,
   ): BuiltFlow {
     const worldPts = pts.map(([x, z]) => new THREE.Vector3(x, PIPE_Y, z));
-    const { path } = pipePath(worldPts, junctionKeys);
+    const { path } = pipePath(worldPts, junctionKeys, bridges);
     const color = this.palette.packets[kind];
     const up = new THREE.Vector3(0, 1, 0);
 
@@ -984,7 +1059,7 @@ export class Stage {
         .clone()
         .addScaledVector(endDir, Math.min(trimEnd, last.distanceTo(beforeLast) * 0.45));
 
-      const { path: subPath, elbows } = pipePath(subWorld);
+      const { path: subPath, elbows } = pipePath(subWorld, new Set(), bridges);
       const len = subPath.getLength();
       if (len < 1e-3) return;
       const segments = Math.max(16, Math.round(len * 14));
@@ -999,7 +1074,10 @@ export class Stage {
       }
       const uStart = uAtVertex(startIdx);
       const uEnd = Math.max(uStart + 0.05, uAtVertex(endIdx));
-      const key = `${canonical}|${runColor.getHexString()}|${String(trimStart)}|${String(trimEnd)}`;
+      const arches = slice
+        .map(([x, z]) => bridges.get(pointKey(x, z)) ?? "")
+        .join("");
+      const key = `${canonical}|${runColor.getHexString()}|${String(trimStart)}|${String(trimEnd)}|${arches}`;
       const kept = pool.runs.get(key);
       if (kept) {
         pool.runs.delete(key);

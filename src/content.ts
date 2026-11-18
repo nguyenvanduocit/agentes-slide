@@ -437,10 +437,12 @@ export const chapters: readonly Chapter[] = [
               "Minh đọc thẻ duyệt trên điện thoại: diff, kết quả test, nhận xét của `@review`. Một lần bấm duyệt.",
               "`@dev` merge vào main. Pipeline của mình release lên staging và chạy test tự động, rồi lên production theo canary: một phần nhỏ người dùng trước, tự rollback khi chỉ số xấu đi.",
             ],
-            show: ["dev", "ci", "main", "stg", "prod", "minh"],
+            show: ["dev", "pr", "ci", "main", "stg", "prod", "minh"],
             focus: ["main", "stg", "prod"],
             flows: [
               { from: "minh", to: "dev", kind: "response", carries: "đã duyệt", intent: "Đọc diff rồi, duyệt" },
+              { from: "dev", to: "pr", kind: "request", carries: "gọi API merge", intent: "Minh duyệt rồi, gọi API merge PR" },
+              { from: "pr", to: "ci", kind: "request", carries: "merge" },
               { from: "ci", to: "main", kind: "request", carries: "merge" },
               { from: "main", to: "stg", kind: "request", carries: "release" },
               { from: "stg", to: "prod", kind: "request", carries: "canary", reaction: "Canary ổn, lên dần cho mọi người" },
